@@ -53,9 +53,7 @@ def get_video_id(bv):
     return video_aid
 
 
-def fetch_comment_replies(video_id, comment_id, parent_user_name, max_pages=20):
-    replies = []
-    preLen = 0
+def fetch_comment_replies(video_id, comment_id, max_pages=1000):
     for page in range(1, max_pages + 1):
         url = f'https://api.bilibili.com/x/v2/reply/reply?oid={video_id}&type=1&root={comment_id}&ps=10&pn={page}'
         try:
@@ -64,6 +62,8 @@ def fetch_comment_replies(video_id, comment_id, parent_user_name, max_pages=20):
             if response.status_code == 200:
                 data = response.json()
                 if data and data.get('data') and data['data'].get('replies'):
+                    print(len(data['data']['replies']))
+                    '''
                     for reply in data['data']['replies']:
                         reply_info = {
                             '用户昵称': reply['member']['uname'],
@@ -76,20 +76,20 @@ def fetch_comment_replies(video_id, comment_id, parent_user_name, max_pages=20):
                             '回复时间': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(reply['ctime']))
                         }
                         replies.append(reply_info)
-                    if preLen == len(replies):
-                        break
-                    preLen = len(replies)
+                    '''
+                    return len(data['data']['replies'])
                 else:
-                    return replies
+                    print('连接超时')
+                    return 0
         except requests.RequestException as e:
             print(f"请求出错: {e}")
             break
         # 控制请求频率
         time.sleep(1)
-    return replies
+    return 0
 
 
-def fetch_comments(video_id, max_pages=20):
+def fetch_comments(video_id, max_pages=1000):
     comments = []
     last_count = 0
     for page in range(1, max_pages + 1):
@@ -101,20 +101,20 @@ def fetch_comments(video_id, max_pages=20):
                 data = response.json()
                 if data and data.get('data') and data['data'].get('replies'):
                     for comment in data['data']['replies']:
-                        comment_info = {
-                            '用户昵称': comment['member']['uname'],
-                            '评论内容': comment['content']['message'],
-                            '被回复用户': '',
-                            '评论层级': '一级评论',
-                            '性别': comment['member']['sex'],
-                            '用户当前等级': comment['member']['level_info']['current_level'],
-                            '点赞数量': comment['like'],
-                            '回复时间': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(comment['ctime']))
-                        }
-                        print(comment_info)
-                        comments.append(comment_info)
-                        replies = fetch_comment_replies(video_id, comment['rpid'], comment['member']['uname'])
-                        comments.extend(replies)
+                        if comment['like']>=50:
+                            comment_info = {
+                                '用户昵称': comment['member']['uname'],
+                                '评论内容': comment['content']['message'],
+                                '被回复用户': '',
+                                '评论层级': '一级评论',
+                                '性别': comment['member']['sex'],
+                                '用户当前等级': comment['member']['level_info']['current_level'],
+                                '点赞数量': comment['like'],
+                                '回复时间': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(comment['ctime'])),
+                                '二级评论数': fetch_comment_replies(video_id, comment['rpid'])
+                            }
+                            print(comment_info)
+                            comments.append(comment_info)
                 if last_count == len(comments):
                     break
                 last_count = len(comments)
@@ -141,12 +141,12 @@ def save_comments_to_excel(comments, video_name, workbook, video_bv):
         sheet = workbook[video_bv]
     else:
         sheet = workbook.create_sheet(title=video_bv)
-        sheet.append(['用户昵称', '性别', '评论内容', '被回复用户', '评论层级', '用户当前等级', '点赞数量', '回复时间', video_name])
+        sheet.append(['用户昵称', '性别', '评论内容', '被回复用户', '评论层级', '用户当前等级', '点赞数量', '二级评论数', '回复时间', video_name])
     
     for comment in comments:
         sheet.append([
             comment['用户昵称'], comment['性别'], comment['评论内容'], comment['被回复用户'],
-            comment['评论层级'], comment['用户当前等级'], comment['点赞数量'], comment['回复时间']
+            comment['评论层级'], comment['用户当前等级'], comment['点赞数量'], comment['二级评论数'], comment['回复时间']
         ])
 
 def fetch_and_save_comments(video_name, video_bv, workbook):
@@ -158,17 +158,13 @@ def fetch_and_save_comments(video_name, video_bv, workbook):
 
 filename = './video_list.csv'
 output_filename = './result/comment_output.xlsx'
-max_threads = 1  # 可以调整的线程数
+max_threads = 2  # 可以调整的线程数
 
 if __name__ == '__main__':
 
     # 创建或加载工作簿
-    if os.path.exists(output_filename):
-        output_filename=get_unique_filename(output_filename)
-        workbook = load_workbook(output_filename)
-    else:
-        workbook = Workbook()
-        workbook.remove(workbook.active)  # 删除默认的Sheet
+    workbook = Workbook()
+    workbook.remove(workbook.active)  # 删除默认的Sheet
 
     #获取热点视频
     video_list = get_popular_videos()
@@ -183,4 +179,5 @@ if __name__ == '__main__':
                 print(f"线程执行出错: {e}")
 
     # 保存工作簿
+    output_filename = get_unique_filename(output_filename)
     workbook.save(output_filename)
