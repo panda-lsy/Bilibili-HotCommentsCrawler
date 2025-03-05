@@ -162,13 +162,9 @@ max_threads = 1  # 可以调整的线程数
 
 if __name__ == '__main__':
 
-    # 创建或加载工作簿
-    if os.path.exists(output_filename):
-        output_filename=get_unique_filename(output_filename)
-        workbook = load_workbook(output_filename)
-    else:
-        workbook = Workbook()
-        workbook.remove(workbook.active)  # 删除默认的Sheet
+    # 创建工作簿
+    workbook = Workbook()
+    workbook.remove(workbook.active)  # 删除默认的Sheet
 
     #获取热点视频
     video_list = get_popular_videos()
@@ -183,4 +179,5 @@ if __name__ == '__main__':
                 print(f"线程执行出错: {e}")
 
     # 保存工作簿
+    output_filename = get_unique_filename(output_filename)
     workbook.save(output_filename)
