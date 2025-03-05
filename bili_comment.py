@@ -111,6 +111,7 @@ def fetch_comments(video_id, max_pages=20):
                             '点赞数量': comment['like'],
                             '回复时间': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(comment['ctime']))
                         }
+                        print(comment_info)
                         comments.append(comment_info)
                         replies = fetch_comment_replies(video_id, comment['rpid'], comment['member']['uname'])
                         comments.extend(replies)
@@ -157,15 +158,13 @@ def fetch_and_save_comments(video_name, video_bv, workbook):
 
 filename = './video_list.csv'
 output_filename = './result/comment_output.xlsx'
-max_threads = 5  # 可以调整的线程数
+max_threads = 1  # 可以调整的线程数
 
 if __name__ == '__main__':
 
-    #检测文件存在
-    output_filename=get_unique_filename(output_filename)
-
     # 创建或加载工作簿
     if os.path.exists(output_filename):
+        output_filename=get_unique_filename(output_filename)
         workbook = load_workbook(output_filename)
     else:
         workbook = Workbook()
