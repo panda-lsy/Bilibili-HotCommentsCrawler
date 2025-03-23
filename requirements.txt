@@ -30,6 +30,7 @@ ipywidgets==8.1.5
 jedi==0.19.2
 jieba==0.42.1
 Jinja2==3.1.6
+joblib==1.4.2
 jsonpickle==4.0.2
 jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
@@ -74,11 +75,15 @@ regex==2024.11.6
 requests==2.32.3
 rpds-py==0.23.1
 safetensors==0.5.3
+scikit-learn==1.6.1
+scipy==1.15.2
+seaborn==0.13.2
 six==1.17.0
 snownlp==0.12.3
 soupsieve==2.6
 stack-data==0.6.3
 sympy==1.13.1
+threadpoolctl==3.6.0
 tiktoken==0.9.0
 tinycss2==1.4.0
 tokenizers==0.21.1
