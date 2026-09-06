@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+cookies.json
+localpulse_comments*.csv
+localpulse_comments*.json
+competition_export*.csv
+competition_export*.json

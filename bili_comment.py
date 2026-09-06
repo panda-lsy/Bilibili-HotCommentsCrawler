@@ -160,7 +160,7 @@ filename = './video_list.csv'
 output_filename = './result/comment_output.xlsx'
 max_threads = 1  # 可以调整的线程数
 
-if __name__ == '__main__':
+if __name__ == '__main__' and os.environ.get('BILI_ALLOW_LEGACY_LIVE') == '1':
 
     # 创建工作簿
     workbook = Workbook()
@@ -181,3 +181,6 @@ if __name__ == '__main__':
     # 保存工作簿
     output_filename = get_unique_filename(output_filename)
     workbook.save(output_filename)
+elif __name__ == '__main__':
+    print('比赛模式已关闭实时网页抓取。请使用 prepare_competition_data.py 处理本地导出快照。')
+    print('如确有书面授权的研究用途，请显式设置 BILI_ALLOW_LEGACY_LIVE=1 后再运行旧脚本。')
